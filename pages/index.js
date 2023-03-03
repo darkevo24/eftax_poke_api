@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { useState } from 'react';
 import SearchResults from '../components/resultsContainer';
 import React,{useRef,useEffect} from 'react';
+import '..mock';
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');

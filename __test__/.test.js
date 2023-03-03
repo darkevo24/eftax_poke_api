@@ -9,7 +9,7 @@ describe('SearchResults component', () => {
       { name: 'Charizard', imageUrl: 'https://pokeapi.co/media/sprites/pokemon/6.png' },
       { name: 'Bulbasaur', imageUrl: 'https://pokeapi.co/media/sprites/pokemon/1.png' },
     ];
-    const { getByText } = render(<SearchResults results={results} />);
+    const { getByText } = render(<SearchResults allPokemon={results} results={results} />);
     expect(getByText('Pikachu')).toBeInTheDocument();
     expect(getByText('Charizard')).toBeInTheDocument();
     expect(getByText('Bulbasaur')).toBeInTheDocument();

@@ -1,4 +1,5 @@
 import React, { useState,useEffect } from 'react';
+import '../mock'
 
 const SearchResult = ({ key,name, imageUrl,type,url }) => {
   const [data,setData] = useState();
@@ -87,7 +88,7 @@ const SearchResults = ({ results,allPokemon }) => {
   <div className="flex flex-col justify-center items-center">
     {results.length > 0 ? (
       results.map(({id,name,sprites,types}) => {
-        const type = types.map((item) => item.type.name);
+        const type = types?.map((item) => item.type.name);
         return (
           <SearchResult key={id} name={name} type={type} imageUrl={sprites?.front_default} />
         );
