@@ -1,56 +1,41 @@
 import Head from 'next/head';
 import { useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
 import SearchResults from '../components/resultsContainer';
-import React,{useRef} from 'react';
-import { CircularProgress } from "@material-ui/core";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    padding: theme.spacing(4),
-  },
-  searchContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing(4),
-  },
-  searchInput: {
-    flexGrow: 1,
-    marginRight: theme.spacing(2),
-  },
-  searchButton: {
-    marginTop: theme.spacing(2),
-  },
-  resultsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  resultItem: {
-    margin: theme.spacing(2),
-    textAlign: 'center',
-    textDecoration: 'none',
-  },
-  resultImage: {
-    display: 'inline-block',
-  },
-  resultName: {
-    marginTop: theme.spacing(1),
-    fontWeight: 'bold',
-  },
-}));
+import React,{useRef,useEffect} from 'react';
 
 export default function Home() {
-  const classes = useStyles();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchInputRef = useRef(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [allPokemon,setAllPokemon] = useState([]);
+
+  useEffect(() => {
+    fetch('https://pokeapi.co/api/v2/pokemon').then(response => response.json())
+    .then(data => {
+      const pokemonList = data.results;
+      setAllPokemon(pokemonList);
+    }).catch(error => {
+      console.error('Error fetching all Pokemon:', error);
+    });
+
+    if (typeof window !== 'undefined') {
+      setIsOnline(window.navigator.onLine);
+    }
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+
+  }, []);
 
   const handleSearchTermChange = (event) => {
     setSearchTerm(event.target.value);
@@ -87,43 +72,49 @@ export default function Home() {
   };  
 
   return (
-    <div className={classes.root}>
-      <Head>
-        <title>Pokemon Browser</title>
-      </Head>
+  <div className="w-full h-full p-6">
+    <Head>
+      <title>Pokemon Browser</title>
+    </Head>
 
-      <Grid container spacing={3} className={classes.searchContainer}>
-        <Grid item xs={12} sm={8} md={6}>
-          <form onSubmit={handleSearchSubmit}>
-            <TextField
-            inputRef={searchInputRef}
-              id="search-input"
-              label="Search Pokemon"
-              variant="outlined"
-              fullWidth
-              value={searchTerm}
-              onChange={handleSearchTermChange}
-              className={classes.searchInput}
-            />
-            {isLoading ? (
-              <CircularProgress className={classes.searchButton} />
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                className={classes.searchButton}
-              >
-                Search
-              </Button>
-            )}
-          </form>
-        </Grid>
-      </Grid>
-
-      <div className={classes.resultsContainer}>
-        <SearchResults results={searchResults} />
+    {!isOnline && (
+      <div className="bg-red-400 text-white p-2 text-center mb-3">
+        You are currently offline. Please check your network connection.
       </div>
+    )}
+
+    <div className="flex justify-center items-center px-4">
+      <form onSubmit={handleSearchSubmit} className="w-full">
+        <div className="flex justify-center items-center relative">
+          <input
+            ref={searchInputRef}
+            id="search-input"
+            type="text"
+            placeholder="Search Pokemon"
+            value={searchTerm}
+            onChange={handleSearchTermChange}
+            className="w-full md:w-96 px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:border-indigo-500"
+          />
+          {isLoading ? (
+            <div class="flex items-center justify-center">
+              <div class="h-8 w-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mr-3"></div>
+              <div>Loading...</div>
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-600 ml-2"
+            >
+              Search
+            </button>
+          )}
+        </div>
+      </form>
     </div>
+
+    <div className="p-4">
+      <SearchResults allPokemon={allPokemon} results={searchResults} />
+    </div>
+  </div>
   );
 }
